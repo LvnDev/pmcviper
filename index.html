@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMC VIPER — Elite Airsoft Unit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    img{max-width:100%;display:block}
+    a{text-decoration:none;color:inherit}
+    ul{list-style:none}
+    button{border:none;background:none;cursor:pointer;font-family:inherit}
+    :root{
+      --black:#070707;--dark:#0e0e0e;--card:#131313;--card-h:#1a1a1a;
+      --red:#C0312A;--red-d:#9A2820;--red-glow:rgba(192,49,42,0.10);
+      --white:#F0F0F0;--grey:#8A8A8A;--grey-d:#404040;
+      --border:rgba(255,255,255,0.07);--border-r:rgba(192,49,42,0.30);
+      --font-d:"Bebas Neue",sans-serif;--font-c:"Barlow Condensed",sans-serif;--font-b:"Barlow",sans-serif;
+      --nav-h:72px;--max-w:1140px;--gap:120px;
+    }
+    body{background:var(--black);color:var(--white);font-family:var(--font-b);font-size:16px;line-height:1.6;overflow-x:hidden}
+    .container{max-width:var(--max-w);margin:0 auto;padding:0 24px}
+    section{padding:var(--gap) 0}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-c);font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:14px}
+    .eyebrow::before{content:"";display:block;width:28px;height:1px;background:var(--red)}
+    h1,h2,h3,h4{font-family:var(--font-c);font-weight:700;line-height:1.1}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;font-family:var(--font-c);font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:background .2s,transform .2s,box-shadow .2s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+    .btn-red{background:var(--red);color:#fff}
+    .btn-red:hover{background:var(--red-d);transform:translateY(-2px);box-shadow:0 8px 24px rgba(192,49,42,.3)}
+    .btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.18);clip-path:none}
+    .btn-ghost:hover{border-color:var(--red);background:var(--red-glow);transform:translateY(-2px)}
+    .btn-outline-red{background:transparent;color:var(--red);border:1px solid var(--border-r);clip-path:none}
+    .btn-outline-red:hover{background:var(--red-glow);border-color:var(--red);transform:translateY(-2px)}
+
+    /* NAV */
+    #nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:var(--nav-h);display:flex;align-items:center;transition:background .3s,box-shadow .3s}
+    #nav.scrolled{background:rgba(7,7,7,.96);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--border)}
+    .nav-inner{width:100%;max-width:var(--max-w);margin:0 auto;padding:0 24px;display:flex;align-items:center}
+    .nav-logo{display:flex;align-items:center;gap:11px}
+    .nav-logo img{width:38px;height:38px;object-fit:contain}
+    .nav-logo-txt{font-family:var(--font-d);font-size:21px;letter-spacing:.06em}
+    .nav-logo-txt em{color:var(--red);font-style:normal}
+    .nav-links{display:flex;align-items:center;gap:2px;margin-left:auto}
+    .nav-links>li{position:relative}
+    .nav-links>li>a{display:flex;align-items:center;gap:4px;padding:8px 15px;font-family:var(--font-c);font-size:14px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--grey);transition:color .2s}
+    .nav-links>li>a:hover,.nav-links>li>a.active{color:var(--white)}
+    .chev{width:11px;height:11px;transition:transform .2s}
+    .nav-links li:hover .chev{transform:rotate(180deg)}
+    .nav-drop{position:absolute;top:calc(100% + 6px);left:0;min-width:200px;background:var(--card);border:1px solid var(--border);border-top:2px solid var(--red);padding:6px 0;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .2s,transform .2s}
+    .nav-links li:hover .nav-drop{opacity:1;pointer-events:all;transform:translateY(0)}
+    .nav-drop a{display:block;padding:10px 18px;font-family:var(--font-c);font-size:13px;font-weight:500;letter-spacing:.06em;color:var(--grey);transition:color .2s,background .2s}
+    .nav-drop a:hover{color:var(--white);background:rgba(255,255,255,.04)}
+    .nav-cta{margin-left:24px}
+    .ham{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto}
+    .ham span{display:block;width:24px;height:2px;background:var(--white);transition:transform .3s,opacity .3s}
+    .ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .ham.open span:nth-child(2){opacity:0}
+    .ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+    /* MOBILE */
+    #mob{position:fixed;inset:0;z-index:998;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;opacity:0;pointer-events:none;transition:opacity .3s}
+    #mob.open{opacity:1;pointer-events:all}
+    #mob a{font-family:var(--font-d);font-size:clamp(36px,8vw,60px);letter-spacing:.04em;color:var(--white);opacity:0;transform:translateY(18px);transition:opacity .3s,transform .3s,color .2s}
+    #mob.open a{opacity:1;transform:translateY(0)}
+    #mob a:hover{color:var(--red)}
+    #mob a:nth-child(1){transition-delay:.06s}#mob a:nth-child(2){transition-delay:.12s}
+    #mob a:nth-child(3){transition-delay:.18s}#mob a:nth-child(4){transition-delay:.24s}
+    #mob a:nth-child(5){transition-delay:.30s}#mob a:nth-child(6){transition-delay:.36s}
+    #mob a:nth-child(7){transition-delay:.42s}
+    .mob-cta{margin-top:28px!important}
+
+    /* HERO */
+    #hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:var(--nav-h);overflow:hidden}
+    .hero-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(192,49,42,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(192,49,42,.025) 1px,transparent 1px);background-size:56px 56px}
+    .hero-glow{position:absolute;bottom:-15%;left:50%;transform:translateX(-50%);width:80vw;height:55vw;pointer-events:none;background:radial-gradient(ellipse at center,rgba(192,49,42,.14) 0%,transparent 68%)}
+    .hero-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(7,7,7,.7) 100%)}
+    .hero-logo-bg{position:absolute;bottom:-6%;left:50%;transform:translateX(-50%);width:min(560px,90vw);opacity:.035;pointer-events:none;user-select:none}
+    .hero-content{position:relative;z-index:1;max-width:900px;padding:0 24px}
+    .hero-kicker{display:inline-flex;align-items:center;gap:12px;margin-bottom:28px;font-family:var(--font-c);font-size:12px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--red)}
+    .hero-kicker::before,.hero-kicker::after{content:"";display:block;width:36px;height:1px;background:var(--red)}
+    .hero-h1{font-family:var(--font-d);font-size:clamp(72px,14vw,156px);line-height:.88;letter-spacing:.02em;margin-bottom:20px;color:var(--white)}
+    .hero-h1 em{color:var(--red);font-style:normal}
+    .hero-sub{font-size:17px;color:var(--grey);font-weight:300;letter-spacing:.04em;margin-bottom:44px}
+    .hero-btns{display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap}
+    .hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--font-c);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--grey-d);animation:scrollpulse 2.2s ease-in-out infinite}
+    .hero-scroll::after{content:"";display:block;width:1px;height:38px;background:linear-gradient(to bottom,var(--grey-d),transparent)}
+    @keyframes scrollpulse{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+
+    /* ABOUT */
+    #about{border-top:1px solid var(--border)}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+    .about-txt h2{font-size:clamp(34px,4.5vw,52px);margin-bottom:22px}
+    .about-txt p{color:var(--grey);line-height:1.8;margin-bottom:16px}
+    .about-txt p:last-of-type{margin-bottom:32px}
+    .about-vis{display:flex;justify-content:center;align-items:center;position:relative;padding:40px}
+    .about-vis img{width:min(300px,100%);filter:drop-shadow(0 0 48px rgba(192,49,42,.22));position:relative;z-index:1}
+    .spin-ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--border-r);animation:spinring 22s linear infinite}
+    .spin-ring::after{content:"";position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--red);border-radius:50%}
+    @keyframes spinring{to{transform:rotate(360deg)}}
+    .stats-row{margin-top:60px;padding-top:56px;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+    .stat{text-align:center}
+    .stat-n{font-family:var(--font-d);font-size:54px;color:var(--red);line-height:1;margin-bottom:4px}
+    .stat-l{font-family:var(--font-c);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey)}
+
+    /* ROLES */
+    #roles{background:var(--dark);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .sec-head{text-align:center;margin-bottom:60px}
+    .sec-head h2{font-size:clamp(30px,4vw,46px)}
+    .sec-head p{margin-top:14px;color:var(--grey);max-width:520px;margin-left:auto;margin-right:auto}
+    .roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .role-card{background:var(--card);border:1px solid var(--border);padding:36px 28px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s,box-shadow .3s}
+    .role-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transition:transform .3s;transform-origin:left}
+    .role-card:hover{border-color:var(--border-r);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+    .role-card:hover::before{transform:scaleX(1)}
+    .role-ico{width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--red-glow);border:1px solid var(--border-r);font-size:22px;margin-bottom:22px}
+    .role-card h3{font-size:22px;margin-bottom:10px}
+    .role-card p{color:var(--grey);font-size:14px;line-height:1.75;margin-bottom:24px}
+
+    /* TEAMS */
+    #teams{border-top:1px solid var(--border);overflow:hidden}
+    .teams-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:56px}
+    .team-card{background:var(--card);border:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;transition:border-color .3s,background .3s}
+    .team-card:hover{border-color:var(--border-r);background:var(--card-h)}
+    .team-ico{width:56px;height:56px;flex-shrink:0;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:20px;color:var(--red)}
+    .team-info h4{font-size:17px;margin-bottom:3px}
+    .team-info p{font-size:12px;color:var(--grey)}
+
+    /* HIGHER RANKS */
+    .ranks-block{margin-top:72px;padding-top:64px;border-top:1px solid var(--border)}
+    .ranks-head{text-align:center;margin-bottom:48px}
+    .ranks-head h3{font-family:var(--font-c);font-size:clamp(24px,3vw,36px);font-weight:700}
+    .ranks-head p{margin-top:10px;color:var(--grey);font-size:14px}
+    .ranks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .rank-card{background:var(--dark);border:1px solid var(--border-r);padding:36px 28px;text-align:center;position:relative;overflow:hidden;transition:background .3s,transform .3s,box-shadow .3s}
+    .rank-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--red),transparent)}
+    .rank-card:hover{background:var(--card);transform:translateY(-3px);box-shadow:0 12px 32px rgba(192,49,42,.15)}
+    .rank-pips{display:flex;gap:5px;justify-content:center;margin-bottom:10px}
+    .pip{width:10px;height:10px;background:var(--red);border-radius:1px;transform:rotate(45deg)}
+    .pip.hollow{background:transparent;border:1.5px solid var(--red)}
+    .rank-armband{display:inline-block;width:44px;height:10px;border-radius:2px;margin-bottom:14px}
+    .rank-name{font-family:var(--font-c);font-size:20px;font-weight:700;margin-bottom:8px}
+    .rank-desc{font-size:13px;color:var(--grey);line-height:1.7}
+
+    /* SCROLL BANNER */
+    .scroll-banner{margin-top:80px;padding:20px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;position:relative}
+    .scroll-banner::before,.scroll-banner::after{content:"";position:absolute;top:0;bottom:0;width:100px;z-index:2}
+    .scroll-banner::before{left:0;background:linear-gradient(to right,var(--black),transparent)}
+    .scroll-banner::after{right:0;background:linear-gradient(to left,var(--black),transparent)}
+    .scroll-track{display:flex;gap:60px;width:max-content;animation:ticker 22s linear infinite}
+    .scroll-track:hover{animation-play-state:paused}
+    .scroll-item{display:flex;align-items:center;gap:14px;white-space:nowrap;font-family:var(--font-c);font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--grey-d)}
+    .scroll-dot{width:5px;height:5px;background:var(--red);border-radius:50%}
+    @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* STANDARDISATION */
+    #standardisation{background:var(--dark);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .std-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .std-card{background:var(--card);border:1px solid var(--border);padding:28px 24px;transition:border-color .3s}
+    .std-card:hover{border-color:var(--border-r)}
+    .std-wide{grid-column:span 2}
+    .std-cat{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+    .std-cat-ico{width:36px;height:36px;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .std-cat-label{font-family:var(--font-c);font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+    .std-items{display:flex;flex-direction:column}
+    .std-items.two-col{display:grid;grid-template-columns:1fr 1fr}
+    .std-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--grey);line-height:1.5}
+    .std-item:last-child{border-bottom:none}
+    .std-item::before{content:"—";color:var(--red);flex-shrink:0;font-size:11px;margin-top:2px}
+    .std-badge{display:inline-block;padding:1px 6px;font-family:var(--font-c);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border-r);color:var(--red);margin-left:5px;flex-shrink:0;white-space:nowrap}
+    .pdf-callout{margin-top:48px;background:var(--card);border:1px solid var(--border);border-left:2px solid var(--red);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+    .pdf-callout-info h4{font-family:var(--font-c);font-size:20px;font-weight:700;margin-bottom:4px}
+    .pdf-callout-info p{color:var(--grey);font-size:13px}
+    .pdf-icon{width:48px;height:48px;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+
+    /* JOIN */
+    #join{border-top:1px solid var(--border)}
+    .join-head{text-align:center;margin-bottom:72px}
+    .join-head h2{font-size:clamp(30px,4vw,46px)}
+    .join-head p{margin-top:14px;color:var(--grey);max-width:480px;margin-left:auto;margin-right:auto}
+    .steps-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:56px}
+    .step{background:var(--card);padding:36px 24px;position:relative;transition:background .3s}
+    .step:hover{background:var(--card-h)}
+    .step:first-child{border-left:2px solid var(--red)}
+    .step-n{font-family:var(--font-d);font-size:60px;color:rgba(192,49,42,.13);line-height:1;margin-bottom:20px}
+    .step-t{font-family:var(--font-c);font-size:20px;font-weight:700;margin-bottom:10px}
+    .step p{font-size:13px;color:var(--grey);line-height:1.75}
+    .join-box{text-align:center;padding:60px 40px;background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden}
+    .join-box::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:1px;background:var(--red)}
+    .join-box h3{font-size:clamp(26px,3.5vw,38px);margin-bottom:14px}
+    .join-box p{color:var(--grey);margin-bottom:30px;max-width:460px;margin-left:auto;margin-right:auto}
+    .join-btns{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+
+    /* FAQ */
+    #faq{background:var(--dark);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    #faq .container{max-width:780px}
+    .faq-head{text-align:center;margin-bottom:56px}
+    .faq-head h2{font-size:clamp(30px,4vw,46px)}
+    .faq-head p{margin-top:14px;color:var(--grey)}
+    .faq-list{display:flex;flex-direction:column;gap:2px}
+    .faq-item{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
+    .faq-item.open{border-color:var(--border-r)}
+    .faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 26px;text-align:left;font-family:var(--font-c);font-size:17px;font-weight:600;color:var(--white);transition:color .2s}
+    .faq-q:hover{color:var(--red)}
+    .faq-item.open .faq-q{color:var(--red)}
+    .faq-plus{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-r);color:var(--red);font-size:20px;line-height:1;transition:transform .3s}
+    .faq-item.open .faq-plus{transform:rotate(45deg)}
+    .faq-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+    .faq-body-inner{padding:0 26px 22px;color:var(--grey);font-size:14px;line-height:1.8}
+
+    /* CONTACT */
+    #contact{border-top:1px solid var(--border)}
+    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+    .contact-left h2{font-size:clamp(30px,4vw,46px);margin-bottom:20px}
+    .contact-left>p{color:var(--grey);line-height:1.8;margin-bottom:36px}
+    .contact-items{display:flex;flex-direction:column;gap:18px}
+    .c-item{display:flex;align-items:flex-start;gap:14px}
+    .c-ico{width:40px;height:40px;flex-shrink:0;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-size:17px}
+    .c-label{font-family:var(--font-c);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:2px}
+    .c-val{font-family:var(--font-c);font-size:15px;color:var(--grey)}
+    .socials{display:flex;gap:10px;margin-top:32px}
+    .soc{width:42px;height:42px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;transition:border-color .2s,background .2s}
+    .soc:hover{border-color:var(--red);background:var(--red-glow)}
+    .contact-right{background:var(--card);border:1px solid var(--border);border-left:2px solid var(--red);padding:36px 32px}
+    .contact-right h4{font-size:22px;margin-bottom:12px}
+    .contact-right p{color:var(--grey);font-size:14px;line-height:1.8;margin-bottom:24px}
+
+    /* FOOTER */
+    footer{padding:64px 0 36px;border-top:1px solid var(--border)}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+    .f-brand img{width:46px;margin-bottom:14px}
+    .f-brand-n{font-family:var(--font-d);font-size:22px;margin-bottom:10px}
+    .f-brand-n em{color:var(--red);font-style:normal}
+    .f-brand p{color:var(--grey);font-size:13px;line-height:1.7;max-width:240px}
+    .f-col h5{font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:18px}
+    .f-col ul{display:flex;flex-direction:column;gap:9px}
+    .f-col ul a{font-size:13px;color:var(--grey);transition:color .2s}
+    .f-col ul a:hover{color:var(--white)}
+    .footer-btm{padding-top:28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .footer-btm p{font-size:12px;color:var(--grey-d)}
+    .footer-btm-links{display:flex;gap:20px}
+    .footer-btm-links a{font-size:12px;color:var(--grey-d);transition:color .2s}
+    .footer-btm-links a:hover{color:var(--grey)}
+
+    /* ANIMATIONS */
+    .fu{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+    .fu.vis{opacity:1;transform:translateY(0)}
+    .fu:nth-child(2){transition-delay:.08s}.fu:nth-child(3){transition-delay:.16s}
+    .fu:nth-child(4){transition-delay:.24s}.fu:nth-child(5){transition-delay:.32s}
+    .fu:nth-child(6){transition-delay:.40s}
+
+    /* RESPONSIVE */
+    @media(max-width:960px){
+      .nav-links,.nav-cta{display:none}.ham{display:flex}
+      .about-grid{grid-template-columns:1fr;gap:48px}.about-vis{order:-1}
+      .stats-row{grid-template-columns:repeat(3,1fr)}
+      .roles-grid{grid-template-columns:1fr;max-width:440px;margin:0 auto}
+      .teams-grid{grid-template-columns:1fr 1fr}
+      .ranks-grid{grid-template-columns:1fr}
+      .std-grid{grid-template-columns:1fr}.std-wide{grid-column:span 1}
+      .steps-row{grid-template-columns:1fr 1fr}
+      .contact-grid{grid-template-columns:1fr;gap:48px}
+      .footer-grid{grid-template-columns:1fr 1fr}
+      .pdf-callout{flex-direction:column;align-items:flex-start}
+    }
+    @media(max-width:600px){
+      :root{--gap:80px}
+      .stats-row{grid-template-columns:1fr;gap:24px}
+      .teams-grid{grid-template-columns:1fr 1fr}
+      .steps-row{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr}
+      .footer-btm{flex-direction:column;text-align:center}
+      .hero-btns,.join-btns{flex-direction:column;align-items:center}
+      .std-items.two-col{grid-template-columns:1fr}
+    }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <img src="images/logo.webp" alt="PMC Viper Logo">
+      <span class="nav-logo-txt">PMC <em>VIPER</em></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li>
+        <a href="#teams">Units <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,4 6,8 10,4"/></svg></a>
+        <div class="nav-drop">
+          <a href="#teams">Alpha Team</a><a href="#teams">Bravo Team</a>
+          <a href="#teams">Charlie Team</a><a href="#teams">Reserve Team</a>
+        </div>
+      </li>
+      <li>
+        <a href="#roles">Roles <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,4 6,8 10,4"/></svg></a>
+        <div class="nav-drop"><a href="#roles">Assault</a><a href="#roles">Support</a><a href="#roles">Recon</a></div>
+      </li>
+      <li><a href="#standardisation">Standards</a></li>
+      <li><a href="#join">Join</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#join" class="btn btn-red nav-cta">JOIN NOW</a>
+    <button class="ham" id="ham" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div id="mob">
+  <a href="#about">About</a><a href="#teams">Units</a><a href="#roles">Roles</a>
+  <a href="#standardisation">Standards</a><a href="#join">Join</a>
+  <a href="#faq">FAQ</a><a href="#contact">Contact</a>
+  <a href="#join" class="btn btn-red mob-cta">JOIN NOW</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div><div class="hero-glow"></div><div class="hero-vignette"></div>
+  <img class="hero-logo-bg" src="images/logo.webp" alt="" aria-hidden="true">
+  <div class="hero-content">
+    <div class="hero-kicker">Elite Airsoft Unit</div>
+    <h1 class="hero-h1">STRIKE FIRST.<br><em>STRIKE</em> FAST.</h1>
+    <p class="hero-sub">Precision. Tactics. Dominance. PMC Viper is where strategy meets the field.</p>
+    <div class="hero-btns">
+      <a href="#join" class="btn btn-red">Join the Unit</a>
+      <a href="#about" class="btn btn-ghost">Learn More</a>
+    </div>
+  </div>
+  <div class="hero-scroll">SCROLL</div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="fu">
+        <div class="eyebrow">Who We Are</div>
+        <h2>Built for the<br>Operators</h2>
+        <p>PMC Viper is an elite airsoft unit built on discipline, teamwork, and a passion for tactical simulation. Founded by veterans of competitive airsoft, our team brings real military-inspired structure to every skirmish.</p>
+        <p>We pride ourselves on running missions with purpose — whether it is an organised milsim event, a casual skirmish, or an intensive training exercise. Every member of Viper is expected to operate with respect, communication, and tactical awareness.</p>
+        <a href="#join" class="btn btn-ghost">Join the Unit</a>
+      </div>
+      <div class="about-vis fu"><div class="spin-ring"></div><img src="images/logo.webp" alt="PMC Viper Logo"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat fu"><div class="stat-n">50+</div><div class="stat-l">Active Members</div></div>
+      <div class="stat fu"><div class="stat-n">100+</div><div class="stat-l">Events Played</div></div>
+      <div class="stat fu"><div class="stat-n">4</div><div class="stat-l">Operational Teams</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section id="roles">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center">Find Your Fit</div>
+      <h2>Choose Your Role</h2>
+      <p>Every operator has a specialty. Find the position that matches your skills and instincts.</p>
+    </div>
+    <div class="roles-grid">
+      <div class="role-card fu"><div class="role-ico">&#9876;</div><h3>Assault</h3><p>The tip of the spear. Assault operators breach objectives, lead advances, and engage targets with aggression and precision under fire.</p><a href="#join" class="btn btn-ghost">Apply as Assault</a></div>
+      <div class="role-card fu"><div class="role-ico">&#128737;</div><h3>Support</h3><p>The backbone of every operation. Support operators handle logistics, suppression fire, and communications to keep the team advancing.</p><a href="#join" class="btn btn-ghost">Apply as Support</a></div>
+      <div class="role-card fu"><div class="role-ico">&#128269;</div><h3>Recon</h3><p>Eyes on the enemy before the team moves. Recon operators gather intelligence, mark positions, and provide critical intel from the shadows.</p><a href="#join" class="btn btn-ghost">Apply as Recon</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAMS -->
+<section id="teams">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center">Our Structure</div>
+      <h2>Our Teams</h2>
+      <p>PMC Viper operates across four squads, each with a distinct role on the field, led by experienced operators under unified command.</p>
+    </div>
+    <div class="teams-grid">
+      <div class="team-card fu"><div class="team-ico">A</div><div class="team-info"><h4>Alpha Team</h4><p>Primary assault &amp; breaching</p></div></div>
+      <div class="team-card fu"><div class="team-ico">B</div><div class="team-info"><h4>Bravo Team</h4><p>Flanking &amp; rapid response</p></div></div>
+      <div class="team-card fu"><div class="team-ico">C</div><div class="team-info"><h4>Charlie Team</h4><p>Heavy support &amp; suppression</p></div></div>
+      <div class="team-card fu"><div class="team-ico">R</div><div class="team-info"><h4>Reserve Team</h4><p>Standby &amp; reinforcement</p></div></div>
+    </div>
+
+    <div class="ranks-block">
+      <div class="ranks-head">
+        <div class="eyebrow" style="justify-content:center">Command Structure</div>
+        <h3>Higher Ranks</h3>
+        <p>Senior leadership responsible for command, strategy, and unit cohesion across all squads.</p>
+      </div>
+      <div class="ranks-grid">
+        <div class="rank-card fu">
+          <div class="rank-pips"><div class="pip hollow"></div></div>
+          <div class="rank-armband" style="background:rgba(192,49,42,0.25);border:1px solid var(--border-r)"></div>
+          <div class="rank-name">Senior Corporal</div>
+          <div class="rank-desc">Experienced operators who mentor recruits and support Team Leaders in the field. First point of escalation within a fireteam. Identified by red armband.</div>
+        </div>
+        <div class="rank-card fu">
+          <div class="rank-pips"><div class="pip"></div><div class="pip hollow"></div></div>
+          <div class="rank-armband" style="background:rgba(30,80,192,0.25);border:1px solid rgba(30,80,192,0.4)"></div>
+          <div class="rank-name">Team Leader</div>
+          <div class="rank-desc">Commands a fireteam of 2&ndash;4 operators. Responsible for tactical decisions, communication, and team welfare during all operations. Identified by blue armband.</div>
+        </div>
+        <div class="rank-card fu">
+          <div class="rank-pips"><div class="pip"></div><div class="pip"></div><div class="pip"></div></div>
+          <div class="rank-armband" style="background:rgba(200,180,0,0.25);border:1px solid rgba(200,180,0,0.4)"></div>
+          <div class="rank-name">Squad Leader</div>
+          <div class="rank-desc">Highest field command. Oversees a squad of 9&ndash;15 operators, coordinates with HQ, and takes full responsibility for the unit on the field. Identified by yellow armband.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-banner">
+    <div class="scroll-track">
+      <div class="scroll-item"><div class="scroll-dot"></div>ALPHA TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>BRAVO TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>CHARLIE TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>RESERVE TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>PMC VIPER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>SQUAD LEADER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>TEAM LEADER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>SENIOR CORPORAL</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>ALPHA TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>BRAVO TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>CHARLIE TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>RESERVE TEAM</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>PMC VIPER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>SQUAD LEADER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>TEAM LEADER</div>
+      <div class="scroll-item"><div class="scroll-dot"></div>SENIOR CORPORAL</div>
+    </div>
+  </div>
+</section>
+
+<!-- STANDARDISATION -->
+<section id="standardisation">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center">Kit Requirements</div>
+      <h2>Standardisation</h2>
+      <p>All PMC Viper operators are required to meet the following kit standards. Items marked <span style="color:var(--red);font-family:var(--font-c);font-size:12px;letter-spacing:.1em">SLs</span> are required for Squad Leaders only.</p>
+    </div>
+    <div class="std-grid">
+      <div class="std-card std-wide fu">
+        <div class="std-cat"><div class="std-cat-ico">&#128084;</div><div class="std-cat-label">Uniform</div></div>
+        <div class="std-items two-col">
+          <div class="std-item">x1 Black Cargo</div>
+          <div class="std-item">x1 Multicam (MC) Cargo</div>
+          <div class="std-item">x1 Multicam (MC) Top</div>
+          <div class="std-item">x1 Grey Shirt <span class="std-badge">Standard</span></div>
+          <div class="std-item">x1 DPM / Woodland Jacket</div>
+        </div>
+      </div>
+      <div class="std-card fu">
+        <div class="std-cat"><div class="std-cat-ico">&#9874;</div><div class="std-cat-label">Helmets</div></div>
+        <div class="std-items">
+          <div class="std-item">MICH2000 — Ranger Green <span class="std-badge">Infantry</span></div>
+          <div class="std-item">FAST — Ranger Green / Tan / Multicam <span class="std-badge">SLs</span></div>
+        </div>
+      </div>
+      <div class="std-card fu">
+        <div class="std-cat"><div class="std-cat-ico">&#128123;</div><div class="std-cat-label">Vests</div></div>
+        <div class="std-items">
+          <div class="std-item">6094K &amp; 1000D Plate Carrier — Ranger Green <span class="std-badge">Standard</span></div>
+          <div class="std-item">LV119 Plate Carrier — Ranger Green / Multicam <span class="std-badge">SLs</span></div>
+        </div>
+      </div>
+      <div class="std-card fu">
+        <div class="std-cat"><div class="std-cat-ico">&#128251;</div><div class="std-cat-label">Radios</div></div>
+        <div class="std-items">
+          <div class="std-item">Baofeng UV-5R <span class="std-badge">Infantry</span> (optional)</div>
+          <div class="std-item">Baofeng AR-152 <span class="std-badge">SLs</span></div>
+        </div>
+      </div>
+      <div class="std-card fu">
+        <div class="std-cat"><div class="std-cat-ico">&#127911;</div><div class="std-cat-label">Comms</div></div>
+        <div class="std-items">
+          <div class="std-item">ARM NEXT F20 (Budget) <span class="std-badge">SLs</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pdf-callout fu">
+      <div class="pdf-icon">&#128196;</div>
+      <div class="pdf-callout-info">
+        <h4>General Regulation Document</h4>
+        <p>Full PMC Viper regulation — uniform rules, PT requirements, firearms training, unit structure and hierarchy.</p>
+      </div>
+      <a href="PMC_Viper_Regulation.pdf" download class="btn btn-red">Download Regulation &#8595;</a>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section id="join">
+  <div class="container">
+    <div class="join-head">
+      <div class="eyebrow" style="justify-content:center">Enlist</div>
+      <h2>How to Join</h2>
+      <p>Ready to operate with the best? Here is how to become a Viper.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step fu"><div class="step-n">01</div><div class="step-t">Apply</div><p>Fill out the application form with your experience, preferred role, and availability. We review every submission carefully.</p></div>
+      <div class="step fu"><div class="step-n">02</div><div class="step-t">Assessment</div><p>We test your PT and firearms skills at a trial event. This helps us find the best fit within the unit and assign your team.</p></div>
+      <div class="step fu"><div class="step-n">03</div><div class="step-t">Probation</div><p>Complete 3 games with your assigned team. After a secondary interview, HQ decides if you are a suitable permanent candidate.</p></div>
+      <div class="step fu"><div class="step-n">04</div><div class="step-t">Welcome</div><p>You are in. Get permanently assigned to your team, meet your Team Leader, and prepare for your first official operation.</p></div>
+    </div>
+    <div class="join-box fu">
+      <h3>Ready to Join PMC Viper?</h3>
+      <p>Applications are reviewed on a rolling basis. Fill in the form and we will be in touch shortly.</p>
+      <div class="join-btns">
+        <a href="YOUR_GOOGLE_FORM_LINK_HERE" target="_blank" class="btn btn-red">Apply Now &rarr;</a>
+        <a href="PMC_Viper_Regulation.pdf" download class="btn btn-ghost">Read the Regulation &#8595;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="faq-head">
+      <div class="eyebrow" style="justify-content:center">Questions</div>
+      <h2>Questions &amp; Answers</h2>
+      <p>Everything you need to know before joining Viper.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item"><button class="faq-q">What is PMC Viper?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">PMC Viper is an organised airsoft unit focused on tactical milsim-style gameplay. We run structured events, train together, and operate as a coordinated team across a variety of airsoft scenarios and sites.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Do I need experience to join?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">Not necessarily. While experience is a bonus, we value attitude, coachability, and willingness to learn. If you are passionate about airsoft and teamwork, we would love to hear from you.</div></div></div>
+      <div class="faq-item"><button class="faq-q">What are the PT requirements?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">Recruits aged 29 and under must complete 5 pull-ups, 50 sit-ups, and a 2.4km run in under 11 minutes 30 seconds. Ages 30&ndash;34: 4 pull-ups, 40 sit-ups, and 2.4km under 12 minutes. PT dress is CS 95 trousers, T-shirt, belt and boots. Those who fail have 14 days to retest.</div></div></div>
+      <div class="faq-item"><button class="faq-q">What weapon do I need for firearms training?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">You must own or rent an M4/M16-style AEG, AK-style, DMR, or AR-15 (14.5&quot; minimum) or bolt-action rifle depending on your intended role. Infantry firearm training is mandatory for all recruits regardless of role.</div></div></div>
+      <div class="faq-item"><button class="faq-q">How often do you hold events?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">We typically run events once or twice a month, including regular skirmishes and larger milsim operations. Separate training sessions are also organised throughout the year.</div></div></div>
+      <div class="faq-item"><button class="faq-q">What are the armband colour codes?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">Armbands are used for rapid field identification: Yellow = Squad Leader / Commander, Blue = Reconnaissance &amp; Support Group, Red = Assault Group. These must remain visible at all times during operations as per the PMC Viper General Regulation.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Is there an age requirement?<span class="faq-plus">+</span></button><div class="faq-body"><div class="faq-body-inner">We follow the legal requirements of the sites we play at. Players must typically be 18+ to purchase airsoft RIFs in the UK, though some sites allow younger players with parental consent. Contact us for details.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-left fu">
+        <div class="eyebrow">Get in Touch</div>
+        <h2>Contact Viper</h2>
+        <p>Have questions before applying? Reach out and one of our officers will get back to you as soon as possible.</p>
+        <div class="contact-items">
+          <div class="c-item"><div class="c-ico">&#9993;</div><div><div class="c-label">Email</div><div class="c-val">contact@pmcviper.com</div></div></div>
+          <div class="c-item"><div class="c-ico">&#128172;</div><div><div class="c-label">Discord</div><div class="c-val">discord.gg/pmcviper</div></div></div>
+        </div>
+        <div class="socials">
+          <a href="#" class="soc" title="Instagram">&#128247;</a>
+          <a href="#" class="soc" title="Discord">&#127918;</a>
+          <a href="#" class="soc" title="YouTube">&#9654;</a>
+          <a href="#" class="soc" title="TikTok">&#127925;</a>
+        </div>
+      </div>
+      <div class="contact-right fu">
+        <h4>Ready to Apply?</h4>
+        <p>The fastest way to get involved is to fill out the application form. It takes less than 5 minutes and our team reviews applications weekly.</p>
+        <a href="YOUR_GOOGLE_FORM_LINK_HERE" target="_blank" class="btn btn-red" style="display:inline-flex;margin-bottom:12px">Open Application Form &rarr;</a><br>
+        <a href="PMC_Viper_Regulation.pdf" download class="btn btn-outline-red" style="display:inline-flex;margin-top:12px">Download Regulation &#8595;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="f-brand">
+        <img src="images/logo.webp" alt="PMC Viper">
+        <div class="f-brand-n">PMC <em>VIPER</em></div>
+        <p>Elite airsoft unit. Precision. Tactics. Dominance.</p>
+      </div>
+      <div class="f-col"><h5>Navigate</h5><ul>
+        <li><a href="#hero">Home</a></li><li><a href="#about">About</a></li>
+        <li><a href="#roles">Roles</a></li><li><a href="#teams">Teams</a></li>
+      </ul></div>
+      <div class="f-col"><h5>Units</h5><ul>
+        <li><a href="#teams">Alpha Team</a></li><li><a href="#teams">Bravo Team</a></li>
+        <li><a href="#teams">Charlie Team</a></li><li><a href="#teams">Reserve Team</a></li>
+      </ul></div>
+      <div class="f-col"><h5>Info</h5><ul>
+        <li><a href="#standardisation">Standards</a></li>
+        <li><a href="#join">How to Join</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="PMC_Viper_Regulation.pdf" download>Regulation PDF</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-btm">
+      <p>&copy; 2026 PMC Viper. All rights reserved.</p>
+      <div class="footer-btm-links"><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const nav = document.getElementById("nav");
+  window.addEventListener("scroll", () => nav.classList.toggle("scrolled", window.scrollY > 40));
+
+  const ham = document.getElementById("ham");
+  const mob = document.getElementById("mob");
+  ham.addEventListener("click", () => {
+    const open = ham.classList.toggle("open");
+    mob.classList.toggle("open", open);
+    document.body.style.overflow = open ? "hidden" : "";
+  });
+  mob.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
+    ham.classList.remove("open"); mob.classList.remove("open"); document.body.style.overflow = "";
+  }));
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("vis"); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll(".fu").forEach(el => io.observe(el));
+
+  const sections = document.querySelectorAll("section[id]");
+  const links = document.querySelectorAll(".nav-links a");
+  const activeIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting)
+        links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + e.target.id));
+    });
+  }, { threshold: 0.45 });
+  sections.forEach(s => activeIO.observe(s));
+
+  document.querySelectorAll(".faq-q").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const item = btn.parentElement;
+      const body = item.querySelector(".faq-body");
+      const isOpen = item.classList.contains("open");
+      document.querySelectorAll(".faq-item").forEach(i => {
+        i.classList.remove("open");
+        i.querySelector(".faq-body").style.maxHeight = "0";
+      });
+      if (!isOpen) { item.classList.add("open"); body.style.maxHeight = body.scrollHeight + "px"; }
+    });
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const hc = document.querySelector(".hero-content");
+    hc.style.cssText = "opacity:0;transform:translateY(24px);transition:opacity .9s ease .15s,transform .9s ease .15s";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      hc.style.opacity = "1"; hc.style.transform = "translateY(0)";
+    }));
+  });
+</script>
+</body>
+</html>
