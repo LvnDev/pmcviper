@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMC VIPER — Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --black:#070707;--dark:#0e0e0e;--card:#131313;--card-h:#1a1a1a;
+      --red:#C0312A;--red-d:#9A2820;--red-glow:rgba(192,49,42,0.10);
+      --white:#F0F0F0;--grey:#8A8A8A;--grey-d:#404040;
+      --border:rgba(255,255,255,0.07);--border-r:rgba(192,49,42,0.30);
+      --green:#2a9a5a;--green-glow:rgba(42,154,90,0.12);
+      --font-d:"Bebas Neue",sans-serif;--font-c:"Barlow Condensed",sans-serif;--font-b:"Barlow",sans-serif;
+      --sidebar:240px;
+    }
+    body{background:var(--black);color:var(--white);font-family:var(--font-b);font-size:15px;line-height:1.5;min-height:100vh}
+
+    /* AUTH GUARD */
+    #authGuard{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px}
+    #authGuard .spin{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+    #authGuard p{font-family:var(--font-c);font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--grey)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* LAYOUT */
+    #app{display:none}
+    .layout{display:flex;min-height:100vh}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar);background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+    .sb-logo{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;text-decoration:none}
+    .sb-logo img{width:32px;height:32px;object-fit:contain}
+    .sb-logo-txt{font-family:var(--font-d);font-size:18px;letter-spacing:.05em;color:var(--white)}
+    .sb-logo-txt em{color:var(--red);font-style:normal}
+    .sb-badge{font-family:var(--font-c);font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;background:var(--red-glow);color:var(--red);border:1px solid var(--border-r);padding:2px 6px;margin-left:2px}
+    .sb-nav{flex:1;padding:12px 0;overflow-y:auto}
+    .sb-section{font-family:var(--font-c);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--grey-d);padding:14px 18px 6px}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-family:var(--font-c);font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--grey);cursor:pointer;transition:color .2s,background .2s;border:none;background:none;width:100%;text-align:left;border-right:2px solid transparent}
+    .sb-item svg{width:16px;height:16px;flex-shrink:0}
+    .sb-item:hover{color:var(--white);background:rgba(255,255,255,.03)}
+    .sb-item.active{color:var(--white);background:var(--red-glow);border-right-color:var(--red)}
+    .sb-item.disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+    .sb-soon{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey-d);margin-left:auto}
+    .sb-footer{padding:16px;border-top:1px solid var(--border)}
+    .sb-user{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .sb-avatar{width:34px;height:34px;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;color:var(--red);flex-shrink:0}
+    .sb-user-info{}
+    .sb-user-name{font-family:var(--font-c);font-size:14px;font-weight:600;color:var(--white)}
+    .sb-user-role{font-size:11px;color:var(--grey)}
+    .sb-logout{width:100%;padding:9px;background:transparent;border:1px solid var(--border);color:var(--grey);font-family:var(--font-c);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s,background .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+    .sb-logout svg{width:14px;height:14px}
+    .sb-logout:hover{border-color:var(--border-r);color:var(--red);background:var(--red-glow)}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar);flex:1;padding:32px;min-height:100vh}
+    .page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap}
+    .page-hd-left h1{font-family:var(--font-c);font-size:28px;font-weight:700;margin-bottom:3px}
+    .page-hd-left p{font-size:13px;color:var(--grey)}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+    .stat-card{background:var(--card);border:1px solid var(--border);padding:20px 22px;position:relative;overflow:hidden}
+    .stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--red)}
+    .stat-n{font-family:var(--font-d);font-size:44px;color:var(--red);line-height:1;margin-bottom:4px}
+    .stat-l{font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--grey)}
+
+    /* SEARCH */
+    .table-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+    .search-wrap{position:relative;flex:1;max-width:320px}
+    .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--grey);pointer-events:none}
+    .search-wrap input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--white);font-family:var(--font-b);font-size:14px;padding:9px 12px 9px 34px;outline:none;transition:border-color .2s}
+    .search-wrap input:focus{border-color:rgba(192,49,42,.5)}
+    .search-wrap input::placeholder{color:var(--grey-d)}
+
+    /* TABLE */
+    .tbl-wrap{background:var(--card);border:1px solid var(--border);overflow:hidden;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:700px}
+    thead th{font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);padding:13px 18px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+    tbody tr{transition:background .15s}
+    tbody tr:hover td{background:var(--card-h)}
+    tbody td{padding:13px 18px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    .tbl-empty{text-align:center;padding:48px!important;color:var(--grey);font-size:14px}
+
+    /* MEMBER CELL */
+    .member-cell{display:flex;align-items:center;gap:12px}
+    .member-avatar{width:36px;height:36px;background:var(--red-glow);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:15px;color:var(--red);flex-shrink:0;text-transform:uppercase}
+    .member-name{font-family:var(--font-c);font-size:15px;font-weight:600;margin-bottom:1px}
+    .member-display{font-size:12px;color:var(--grey)}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;padding:3px 9px;font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:1px}
+    .badge-admin{background:rgba(192,49,42,.15);color:var(--red);border:1px solid var(--border-r)}
+    .badge-member{background:rgba(255,255,255,.06);color:var(--grey);border:1px solid var(--border)}
+    .badge-pending{background:rgba(200,150,0,.12);color:#d4a017;border:1px solid rgba(200,150,0,.3)}
+    .badge-active{background:var(--green-glow);color:#5dde93;border:1px solid rgba(42,154,90,.3)}
+
+    /* PERM PILLS */
+    .perms-cell{display:flex;flex-wrap:wrap;gap:4px}
+    .perm-pill{display:inline-block;padding:2px 6px;font-family:var(--font-c);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+    .perm-pill.on{background:rgba(42,154,90,.12);color:#5dde93;border:1px solid rgba(42,154,90,.25)}
+    .perm-pill.off{background:rgba(255,255,255,.04);color:var(--grey-d);border:1px solid var(--border)}
+
+    /* ACTION BUTTONS */
+    .actions{display:flex;gap:6px}
+    .act-btn{padding:6px 12px;font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;transition:background .2s,color .2s;white-space:nowrap}
+    .act-edit{background:rgba(255,255,255,.06);color:var(--white)}
+    .act-edit:hover{background:rgba(255,255,255,.12)}
+    .act-del{background:rgba(192,49,42,.12);color:var(--red)}
+    .act-del:hover{background:rgba(192,49,42,.22)}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;font-family:var(--font-c);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:none;transition:background .2s,transform .2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+    .btn svg{width:14px;height:14px}
+    .btn-red{background:var(--red);color:#fff}
+    .btn-red:hover{background:var(--red-d);transform:translateY(-1px)}
+    .btn-ghost{background:transparent;color:var(--white);border:1px solid var(--border);clip-path:none}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.04)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+    .btn.loading{position:relative;color:transparent!important}
+    .btn.loading::after{content:"";position:absolute;inset:0;margin:auto;width:18px;height:18px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+    /* MODALS */
+    .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
+    .modal-ov.open{opacity:1;pointer-events:all}
+    .modal{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--red);width:min(480px,100%);max-height:90vh;overflow-y:auto;transform:translateY(12px);transition:transform .25s}
+    .modal-ov.open .modal{transform:translateY(0)}
+    .modal-hd{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+    .modal-hd h3{font-family:var(--font-c);font-size:18px;font-weight:700}
+    .modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--grey);cursor:pointer;font-size:18px;line-height:1;transition:border-color .2s,color .2s}
+    .modal-close:hover{border-color:var(--border-r);color:var(--red)}
+    .modal-body{padding:24px}
+    .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+    /* FORM */
+    .field{margin-bottom:18px}
+    .field label{display:block;font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-bottom:7px}
+    .field input{width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);font-family:var(--font-b);font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s}
+    .field input:focus{border-color:rgba(192,49,42,.5)}
+    .field input::placeholder{color:var(--grey-d)}
+    .field-note{font-size:12px;color:var(--grey);margin-top:5px}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+    /* PERMISSIONS TOGGLES */
+    .perm-group{margin-bottom:20px}
+    .perm-group-label{font-family:var(--font-c);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+    .perm-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+    .perm-row:last-child{border-bottom:none}
+    .perm-info{}
+    .perm-name{font-family:var(--font-c);font-size:14px;font-weight:600;margin-bottom:1px}
+    .perm-desc{font-size:12px;color:var(--grey)}
+    .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-track{position:absolute;inset:0;background:var(--grey-d);border-radius:11px;cursor:pointer;transition:background .2s}
+    .toggle-track::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+    .toggle input:checked + .toggle-track{background:var(--red)}
+    .toggle input:checked + .toggle-track::after{transform:translateX(18px)}
+
+    /* ERROR / SUCCESS */
+    .alert{padding:11px 14px;font-size:13px;margin-bottom:16px;display:none}
+    .alert.show{display:block}
+    .alert-err{background:rgba(192,49,42,.12);border:1px solid var(--border-r);color:#ff6b6b}
+    .alert-ok{background:var(--green-glow);border:1px solid rgba(42,154,90,.3);color:#5dde93}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;right:24px;z-index:9000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast-item{padding:12px 18px;font-family:var(--font-c);font-size:13px;font-weight:600;letter-spacing:.06em;border-left:3px solid;transform:translateX(20px);opacity:0;animation:toastIn .3s forwards,toastOut .3s forwards 2.7s;pointer-events:none}
+    .toast-item.ok{background:var(--card);border-color:var(--green);color:var(--white)}
+    .toast-item.err{background:var(--card);border-color:var(--red);color:var(--white)}
+    @keyframes toastIn{to{opacity:1;transform:translateX(0)}}
+    @keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+    /* DELETE MODAL */
+    .del-icon{width:52px;height:52px;background:rgba(192,49,42,.12);border:1px solid var(--border-r);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 16px}
+    .del-title{font-family:var(--font-c);font-size:20px;font-weight:700;text-align:center;margin-bottom:8px}
+    .del-sub{font-size:13px;color:var(--grey);text-align:center;line-height:1.6}
+    .del-name{color:var(--white);font-weight:600}
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform .3s}
+      .sidebar.mob-open{transform:translateX(0)}
+      .main{margin-left:0}
+      .stats{grid-template-columns:1fr 1fr}
+      .field-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH GUARD -->
+<div id="authGuard">
+  <div class="spin"></div>
+  <p>Verifying access...</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="index.html" class="sb-logo">
+        <img src="images/logo.webp" alt="PMC Viper">
+        <span class="sb-logo-txt">PMC <em>VIPER</em></span>
+        <span class="sb-badge">Admin</span>
+      </a>
+      <nav class="sb-nav">
+        <div class="sb-section">Management</div>
+        <button class="sb-item active" data-tab="members">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Members
+        </button>
+        <div class="sb-section">Content</div>
+        <button class="sb-item disabled">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          News
+          <span class="sb-soon">Soon</span>
+        </button>
+        <button class="sb-item disabled">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          Media
+          <span class="sb-soon">Soon</span>
+        </button>
+        <div class="sb-section">Site</div>
+        <a href="index.html" class="sb-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+          View Site
+        </a>
+      </nav>
+      <div class="sb-footer">
+        <div class="sb-user">
+          <div class="sb-avatar" id="sbAvatar">?</div>
+          <div class="sb-user-info">
+            <div class="sb-user-name" id="sbUsername">...</div>
+            <div class="sb-user-role">Administrator</div>
+          </div>
+        </div>
+        <button class="sb-logout" id="logoutBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- MEMBERS TAB -->
+      <div id="tab-members">
+        <div class="page-hd">
+          <div class="page-hd-left">
+            <h1>Members</h1>
+            <p>Manage unit accounts and permissions</p>
+          </div>
+          <button class="btn btn-red" id="openCreateBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Account
+          </button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card"><div class="stat-n" id="statTotal">—</div><div class="stat-l">Total Members</div></div>
+          <div class="stat-card"><div class="stat-n" id="statPending">—</div><div class="stat-l">Awaiting First Login</div></div>
+          <div class="stat-card"><div class="stat-n" id="statAdmins">—</div><div class="stat-l">Admins</div></div>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Search members...">
+          </div>
+          <button class="btn btn-ghost" id="refreshBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Permissions</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="membersBody">
+              <tr><td class="tbl-empty" colspan="6">Loading members...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- CREATE ACCOUNT MODAL -->
+<div class="modal-ov" id="createModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>Create Member Account</h3>
+      <button class="modal-close" data-close="createModal">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-err" id="createErr"></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Username *</label>
+          <input type="text" id="newUsername" placeholder="e.g. operator1" autocomplete="off">
+          <div class="field-note">Used to log in. Lowercase, no spaces.</div>
+        </div>
+        <div class="field">
+          <label>Display Name *</label>
+          <input type="text" id="newDisplayName" placeholder="e.g. Operator One" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label>Email Address *</label>
+        <input type="email" id="newEmail" placeholder="member@email.com" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Temporary Password *</label>
+        <input type="text" id="newTempPw" placeholder="They will set their own on first login" autocomplete="off">
+        <div class="field-note">Share this with the member. They will be prompted to change it on first login.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="createModal">Cancel</button>
+      <button class="btn btn-red" id="createSubmitBtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PERMISSIONS MODAL -->
+<div class="modal-ov" id="permsModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>Edit Permissions</h3>
+      <button class="modal-close" data-close="permsModal">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-err" id="permsErr"></div>
+      <p style="font-size:13px;color:var(--grey);margin-bottom:20px">Editing permissions for: <strong id="permsUsername" style="color:var(--white)"></strong></p>
+
+      <div class="perm-group">
+        <div class="perm-group-label">Uploads</div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Upload Photos</div><div class="perm-desc">Can upload photos to the gallery</div></div>
+          <label class="toggle"><input type="checkbox" id="p_photos"><span class="toggle-track"></span></label>
+        </div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Upload Videos</div><div class="perm-desc">Can upload videos to the gallery</div></div>
+          <label class="toggle"><input type="checkbox" id="p_videos"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+
+      <div class="perm-group">
+        <div class="perm-group-label">News</div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Create News Posts</div><div class="perm-desc">Can publish news and updates</div></div>
+          <label class="toggle"><input type="checkbox" id="p_news"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+
+      <div class="perm-group">
+        <div class="perm-group-label">Content Editing</div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Edit Own Content</div><div class="perm-desc">Can edit their own posts and uploads</div></div>
+          <label class="toggle"><input type="checkbox" id="p_edit_own"><span class="toggle-track"></span></label>
+        </div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Edit Others Content</div><div class="perm-desc">Can edit posts uploaded by other members</div></div>
+          <label class="toggle"><input type="checkbox" id="p_edit_others"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+
+      <div class="perm-group">
+        <div class="perm-group-label">Content Deletion</div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Delete Own Content</div><div class="perm-desc">Can delete their own posts and uploads</div></div>
+          <label class="toggle"><input type="checkbox" id="p_del_own"><span class="toggle-track"></span></label>
+        </div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Delete Others Content</div><div class="perm-desc">Can delete posts uploaded by other members</div></div>
+          <label class="toggle"><input type="checkbox" id="p_del_others"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+
+      <div class="perm-group">
+        <div class="perm-group-label">Access Level</div>
+        <div class="perm-row">
+          <div class="perm-info"><div class="perm-name">Administrator</div><div class="perm-desc">Full access to all content and admin panel</div></div>
+          <label class="toggle"><input type="checkbox" id="p_admin"><span class="toggle-track"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="permsModal">Cancel</button>
+      <button class="btn btn-red" id="permsSubmitBtn">Save Permissions</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-ov" id="deleteModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body" style="padding:32px 24px;text-align:center">
+      <div class="del-icon">&#128465;</div>
+      <div class="del-title">Delete Account</div>
+      <div class="del-sub">This will permanently delete <span class="del-name" id="delUsername"></span> and all their data. This cannot be undone.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="deleteModal">Cancel</button>
+      <button class="btn btn-red" id="deleteSubmitBtn">Delete Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://laqzobkdxunrgqaaixcl.supabase.co',
+    'sb_publishable_6_mVXuUQQiqmee3-qnl_Og_cgOnNrCh'
+  );
+  const EDGE_FN = 'https://laqzobkdxunrgqaaixcl.supabase.co/functions/v1/admin-actions';
+
+  let allMembers = [];
+  let editingUserId = null;
+  let deletingUserId = null;
+  let currentSession = null;
+
+  // ── TOAST ──────────────────────────────────────────────
+  function toast(msg, type = 'ok') {
+    const t = document.createElement('div');
+    t.className = 'toast-item ' + type;
+    t.textContent = (type === 'ok' ? '✓ ' : '✕ ') + msg;
+    document.getElementById('toast').appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  // ── MODAL ──────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
+  document.querySelectorAll('.modal-ov').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+  });
+
+  // ── AUTH GUARD ─────────────────────────────────────────
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentSession = session;
+
+    const { data: profile } = await sb.from('profiles')
+      .select('username, display_name, is_admin')
+      .eq('id', session.user.id).single();
+
+    if (!profile?.is_admin) { window.location.href = 'portal.html'; return; }
+
+    document.getElementById('sbUsername').textContent = profile.username;
+    document.getElementById('sbAvatar').textContent = profile.username.charAt(0).toUpperCase();
+    document.getElementById('authGuard').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    loadMembers();
+  })();
+
+  // ── LOGOUT ─────────────────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  });
+
+  // ── LOAD MEMBERS ───────────────────────────────────────
+  async function loadMembers() {
+    const body = document.getElementById('membersBody');
+    body.innerHTML = '<tr><td class="tbl-empty" colspan="6">Loading...</td></tr>';
+
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*, permissions(*)')
+      .order('created_at', { ascending: true });
+
+    if (error) { body.innerHTML = '<tr><td class="tbl-empty" colspan="6">Error loading members.</td></tr>'; return; }
+
+    allMembers = data;
+    updateStats(data);
+    renderMembers(data);
+  }
+
+  function updateStats(data) {
+    document.getElementById('statTotal').textContent = data.length;
+    document.getElementById('statPending').textContent = data.filter(m => m.first_login).length;
+    document.getElementById('statAdmins').textContent = data.filter(m => m.is_admin).length;
+  }
+
+  function renderMembers(data) {
+    const body = document.getElementById('membersBody');
+    if (!data.length) {
+      body.innerHTML = '<tr><td class="tbl-empty" colspan="6">No members found.</td></tr>';
+      return;
+    }
+    body.innerHTML = data.map(m => {
+      const p = m.permissions;
+      const perms = p ? [
+        { label: 'Photos', on: p.can_upload_photos },
+        { label: 'Videos', on: p.can_upload_videos },
+        { label: 'News',   on: p.can_create_news },
+        { label: 'Edit ✦', on: p.can_edit_others_content },
+        { label: 'Del ✦',  on: p.can_delete_others_content },
+      ] : [];
+
+      const permsPills = perms.map(p =>
+        `<span class="perm-pill ${p.on ? 'on' : 'off'}">${p.label}</span>`
+      ).join('');
+
+      const created = m.created_at
+        ? new Date(m.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+        : '—';
+
+      return `<tr>
+        <td>
+          <div class="member-cell">
+            <div class="member-avatar">${m.username.charAt(0)}</div>
+            <div>
+              <div class="member-name">${m.username}</div>
+              <div class="member-display">${m.display_name || '—'}</div>
+            </div>
+          </div>
+        </td>
+        <td>${m.is_admin
+          ? '<span class="badge badge-admin">Admin</span>'
+          : '<span class="badge badge-member">Member</span>'}</td>
+        <td>${m.first_login
+          ? '<span class="badge badge-pending">First Login Pending</span>'
+          : '<span class="badge badge-active">Active</span>'}</td>
+        <td><div class="perms-cell">${m.is_admin ? '<span class="badge badge-admin">Full Access</span>' : permsPills}</div></td>
+        <td style="color:var(--grey);font-size:13px">${created}</td>
+        <td>
+          <div class="actions">
+            <button class="act-btn act-edit" onclick="openPerms('${m.id}')">Permissions</button>
+            <button class="act-btn act-del" onclick="openDelete('${m.id}','${m.username}')">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── SEARCH ─────────────────────────────────────────────
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    const filtered = q
+      ? allMembers.filter(m =>
+          m.username.toLowerCase().includes(q) ||
+          (m.display_name || '').toLowerCase().includes(q))
+      : allMembers;
+    renderMembers(filtered);
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', loadMembers);
+
+  // ── CREATE ACCOUNT ─────────────────────────────────────
+  document.getElementById('openCreateBtn').addEventListener('click', () => {
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newDisplayName').value = '';
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newTempPw').value = '';
+    document.getElementById('createErr').classList.remove('show');
+    openModal('createModal');
+  });
+
+  document.getElementById('createSubmitBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('createSubmitBtn');
+    const errBox = document.getElementById('createErr');
+    const username    = document.getElementById('newUsername').value.trim().toLowerCase();
+    const displayName = document.getElementById('newDisplayName').value.trim();
+    const email       = document.getElementById('newEmail').value.trim();
+    const tempPw      = document.getElementById('newTempPw').value;
+
+    errBox.classList.remove('show');
+
+    if (!username || !displayName || !email || !tempPw) {
+      errBox.textContent = 'All fields are required.';
+      errBox.classList.add('show'); return;
+    }
+    if (!/^[a-z0-9_]+$/.test(username)) {
+      errBox.textContent = 'Username can only contain lowercase letters, numbers, and underscores.';
+      errBox.classList.add('show'); return;
+    }
+    if (tempPw.length < 6) {
+      errBox.textContent = 'Temporary password must be at least 6 characters.';
+      errBox.classList.add('show'); return;
+    }
+
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch(EDGE_FN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({ action: 'create_user', username, display_name: displayName, email, temp_password: tempPw })
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error || 'Failed to create user');
+
+      closeModal('createModal');
+      toast('Account created for ' + username);
+      loadMembers();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  });
+
+  // ── EDIT PERMISSIONS ───────────────────────────────────
+  function openPerms(userId) {
+    editingUserId = userId;
+    const member = allMembers.find(m => m.id === userId);
+    if (!member) return;
+
+    document.getElementById('permsUsername').textContent = member.username;
+    document.getElementById('permsErr').classList.remove('show');
+
+    const p = member.permissions;
+    document.getElementById('p_photos').checked      = p?.can_upload_photos || false;
+    document.getElementById('p_videos').checked      = p?.can_upload_videos || false;
+    document.getElementById('p_news').checked        = p?.can_create_news || false;
+    document.getElementById('p_edit_own').checked    = p?.can_edit_own_content ?? true;
+    document.getElementById('p_edit_others').checked = p?.can_edit_others_content || false;
+    document.getElementById('p_del_own').checked     = p?.can_delete_own_content ?? true;
+    document.getElementById('p_del_others').checked  = p?.can_delete_others_content || false;
+    document.getElementById('p_admin').checked       = member.is_admin || false;
+
+    openModal('permsModal');
+  }
+
+  document.getElementById('permsSubmitBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('permsSubmitBtn');
+    const errBox = document.getElementById('permsErr');
+    errBox.classList.remove('show');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+      const isAdmin = document.getElementById('p_admin').checked;
+
+      // Update permissions table
+      const { error: pErr } = await sb.from('permissions').update({
+        can_upload_photos:          document.getElementById('p_photos').checked,
+        can_upload_videos:          document.getElementById('p_videos').checked,
+        can_create_news:            document.getElementById('p_news').checked,
+        can_edit_own_content:       document.getElementById('p_edit_own').checked,
+        can_edit_others_content:    document.getElementById('p_edit_others').checked,
+        can_delete_own_content:     document.getElementById('p_del_own').checked,
+        can_delete_others_content:  document.getElementById('p_del_others').checked,
+        updated_by: (await sb.auth.getUser()).data.user.id
+      }).eq('user_id', editingUserId);
+
+      if (pErr) throw pErr;
+
+      // Update is_admin in profiles
+      const { error: aErr } = await sb.from('profiles')
+        .update({ is_admin: isAdmin })
+        .eq('id', editingUserId);
+
+      if (aErr) throw aErr;
+
+      closeModal('permsModal');
+      toast('Permissions updated');
+      loadMembers();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  });
+
+  // ── DELETE ACCOUNT ─────────────────────────────────────
+  function openDelete(userId, username) {
+    deletingUserId = userId;
+    document.getElementById('delUsername').textContent = username;
+    openModal('deleteModal');
+  }
+
+  document.getElementById('deleteSubmitBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('deleteSubmitBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch(EDGE_FN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({ action: 'delete_user', user_id: deletingUserId })
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error || 'Failed to delete user');
+
+      closeModal('deleteModal');
+      toast('Account deleted');
+      loadMembers();
+    } catch (err) {
+      toast(err.message, 'err');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
